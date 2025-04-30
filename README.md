@@ -1,2 +1,2 @@
 # aidan-newman.github.io
-My Personal Webpage
+Portfolio website to summarize my projects and acomplishments.

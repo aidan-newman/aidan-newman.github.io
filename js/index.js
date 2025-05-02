@@ -1,65 +1,49 @@
+console.log("Page loaded");
 
-let gap_divs;
-let pages;
-let current;
+let clicked = 0;
+let pos = 45;
 
+function animVar(start, target, dur, updateFn) {
+    const init = performance.now();
 
-function highlightGaps(enter, i) {
-    if (enter) { // mouse enter (highlight)
-        if(pages[i] === current) {return;}
-        if (i>=0) {
-            gap_divs[i].style.borderBottomRightRadius = "10px";
-        }
-        if (i+1<gap_divs.length) {
-            gap_divs[i+1].style.borderBottomLeftRadius = "10px";
-        }
-    } else { // mouse exit (unhighlight)
-
-        if(pages[i] === current) {return;}
-        if (i>=0) {
-            gap_divs[i].style.borderBottomRightRadius = "0";
-        }
-        if (i+1<gap_divs.length) {
-            gap_divs[i + 1].style.borderBottomLeftRadius = "0";
+    function frame(curr) {
+        const progress = Math.min((curr - init) / dur, 1);
+        const value = start + (target - start) * progress;
+        updateFn(value);
+        if (progress < 1) {
+            requestAnimationFrame(frame);
         }
     }
+    requestAnimationFrame(frame);
 }
 
-function main() {
 
-    gap_divs = document.getElementsByClassName("gap_div");
-    pages = document.getElementsByClassName("header_page");
-    current = document.getElementById("startup");
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const pages = [...document.querySelectorAll(".pg-blk")];
+    const main = document.querySelector("main");
+
+    function selectPage(pages, i) {
+        const main_rect = main.getBoundingClientRect();
+            
+        let target = (pages[i].getBoundingClientRect().left + pages[i].getBoundingClientRect().width/2) / main_rect.width * 100;
+        
+        animVar(pos, target, 150, x => {
+            document.documentElement.style.setProperty("--hdr-base-ctr", x+"%");
+        });
+        pos = target;
+    }
+
+
 
     for (let i = 0; i < pages.length; i++) {
-
-        if (pages[i] === current) {
-            if (i>=0) {
-                gap_divs[i].style.borderRadius = "0 0 10px 0";
-            }
-            if (i+1<gap_divs.length) {
-                gap_divs[i+1].style.borderRadius = "0 0 0 10px";
-            }
-            pages[i].style.borderRadius = "10px 10px 0 0";
-            pages[i].style.backgroundColor = "#ECF0F1";
-        }
-
-        pages[i].addEventListener("mouseover", function(){highlightGaps(true, i)});
-        pages[i].addEventListener("mouseleave", function(){highlightGaps(false, i)});
-
-        pages[i].addEventListener("click", function() {
-            current = pages[i];
-
-            if (i>=0) {
-                gap_divs[i].style.borderRadius = "0 0 10px 0";
-            }
-            if (i+1<gap_divs.length) {
-                gap_divs[i+1].style.borderRadius = "0 0 0 10px";
-            }
-            pages[i].style.borderRadius = "10px 10px 0 0";
-            pages[i].style.backgroundColor = "#ECF0F1";
+        pages[i].addEventListener("click", () => {
+            clicked = i;
+            selectPage(pages, i);
         });
     }
-}
-
-window.addEventListener("load", main);
+    window.addEventListener("resize", () => {
+        selectPage(pages, clicked);
+    });
+});
